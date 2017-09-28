@@ -223,7 +223,8 @@ class BlackNameCodeTool:
 
     def get_info(self, name, idno, legal_person):
         d = {}
-        d['party'] = self.get_(name, idno)
+        tyqsb = lambda s:re.sub('-+','-',s)
+        d['party'] = self.get_(tyqsb(name), tyqsb(idno))
         d['legal_person'] = self.get_(legal_person, '') if re.sub(' |\t|\r|\n','',legal_person) not in ('*','不详','无','法定代表人','.','0','厂长','未知','暂无','暂无。','无法查询','查无','无该信息','卷宗内无此记录','情况不详') else [{'name':'', 'idno':''}]
         return d
 
