@@ -57,5 +57,5 @@ local.properties
 *.log.zip
 # Mac os #
 .DS_Store%
-.out
+*.out
 __pycache__
