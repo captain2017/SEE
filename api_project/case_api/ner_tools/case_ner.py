@@ -151,7 +151,7 @@ class CaseNER(ExtractCorp):
         corps = []
         # 先获取企业名称
         while 1:
-            corp = self.corp_extract(s_)
+            corp = self.corp_extract(s_).replace('R','').replace('X','')
             if not corp:
                 break
             corps.append(corp)
@@ -162,7 +162,7 @@ class CaseNER(ExtractCorp):
         pieces = self._split(s_)
         for law_word in self.law_words:
             pieces = split_element(pieces, law_word)
-        persons = [self.person_extract(part, s_) for part in pieces if len(part) > 1]
+        persons = [re.sub('R|X','',self.person_extract(part, s_)) for part in pieces if len(part) > 1]
         persons = [name for name in persons if name and 'X' not in name]
         
         return corps,  persons
