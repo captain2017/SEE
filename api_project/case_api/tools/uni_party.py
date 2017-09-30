@@ -35,12 +35,12 @@ def parser_party(text, role=""):
             text_ = text_.replace(item, '')
     
     key_, entity_array = set(key_), []
-    print(key_)
+    #print(key_)
     if key_ - role_set:
-        print(1)
+        #print(1)
         entity_array = _reason_tool(text)
     else:
-        print(2)
+        #print(2)
         entity_array = _court_tool.parser_litigant(text)
 
     if not role:

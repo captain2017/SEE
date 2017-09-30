@@ -127,7 +127,7 @@ class ExtractCorp(ProbSentenceDetermine):
         pos = ind
         quasi_corps = []
         while pos >= 0:
-            quasi_str = s[: pos].replace('Z','') + 'X' + s[ind+endL :].replace('Z','')
+            quasi_str = s[: pos].replace('Z','').replace('R','') + 'X' + s[ind+endL :].replace('Z','').replace('R','')
             #print("0###", quasi_str)
             if ind + endL - pos > max_corp_len:
                 break
