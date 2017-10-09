@@ -36,7 +36,7 @@ g = lambda x: json.dumps(x, ensure_ascii=False).encode('utf-8')
 
 class CaseReasonETL:
     
-    ner_url = 'http://10.50.87.150:8090/v1/case_ner'
+    ner_url = 'http://10.50.87.162/v1/case_ner'
     
     def __init__(self, law_words_file, sep_file):
         with codecs.open(law_words_file, 'r', 'utf-8') as f:
