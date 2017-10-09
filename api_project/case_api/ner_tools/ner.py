@@ -38,8 +38,13 @@ class ProbSentenceDetermine(object):
             sum_all = sum(list(dic_.values()))
             if sum_all < len(self.text_list) / 500:
                 _word_prob.pop(key_)
-            for key2 in dic_:
+                continue
+            for key2 in list(dic_.keys()):
                 dic_[key2] /= sum_all
+                if dic_[key2] < 0.01:
+                    dic_.pop(key2)
+            _word_prob[key_] = dic_
+        _word_prob = {key:_word_prob[key]  for key in _word_prob}
         return _word_prob
         
     def predict_prob_pair(self, x, y, default=0.001):
@@ -122,7 +127,7 @@ class ExtractCorp(ProbSentenceDetermine):
         pos = ind
         quasi_corps = []
         while pos >= 0:
-            quasi_str = s[: pos].replace('Z','') + 'X' + s[ind+endL :].replace('Z','')
+            quasi_str = s[: pos].replace('Z','').replace('R','') + 'X' + s[ind+endL :].replace('Z','').replace('R','')
             #print("0###", quasi_str)
             if ind + endL - pos > max_corp_len:
                 break

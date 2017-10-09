@@ -44,7 +44,7 @@ class CaseReasonETL:
             self.law_words = self.law_words2[:self.law_words2.index('----')]
             self.law_words2 = set(self.law_words2)
         with codecs.open(sep_file, 'r', 'utf-8') as f:
-            self.sep_pattern = re.compile(u'|'.join([line.strip() for line in f.readlines()]))
+            self.sep_pattern = re.compile(u'|'.join([line.strip() for line in f.readlines()]+[' ']))
     
     
     def get_person_name(self, s, max_L=4):
@@ -80,20 +80,19 @@ class CaseReasonETL:
             return ''
             
     def extract_each(self, s):
+        if len(s) < 6:
+            return {}
         corps, persons = [], []
-        try:
-            data = json.dumps({'text':s}, ensure_ascii=False)
-            response = requests.post(self.ner_url, data=data.encode('utf-8')).text
-            result = json.loads(response)
-            corps, persons = (result['corps'], result['persons']) if 'error_type' not in result else ([], [])
-        except:
-            pass
-        
-        s = s.split(u'审理')[1] if u'审理' in s else s
+        s = re.sub(u'[（\(]+[原再二审被告执行人上诉]{2,}[\)|）]+','',s)
+        s_ = s
+        #print('case_reason', s)
+        s = sorted(re.split(u'[审|理|一|二|三|四|五|六|七|八|九|〇|十|法|庭|法|院\d-]{2,}', s), key=lambda x:-len(x))[0] if u'审理' in s else s
         pieces = re.split(self.sep_pattern, s)
         for law_word in self.law_words:
             pieces = split_element(pieces, law_word)
-        pieces = [item if u'第三人' != item[:3] else item[3:] for item in pieces if item]
+        #pieces = [item if u'第三人' != item[:3] else item[3:] for item in pieces if item]
+        pieces = [item.split(u'第三人') if u'第三人' in item and u'第三人民' not in item else [item] for item in pieces if item]
+        pieces = reduce(lambda x,y:x+y, pieces)
         pieces = [item for item in pieces if item]
         #print(1, pieces)
         corp_names = [self.get_corp_name(item) for item in pieces]
@@ -104,8 +103,20 @@ class CaseReasonETL:
         #person_names = reduce(lambda x,y:x+y, [_model_person.extractChineseName(item) for item in pieces])
         corp_names, person_names = [item for item in corp_names if item], \
                                    [item for item in person_names if item]
-        corp_names += corps
-        person_names += persons
+        _partners = corp_names + person_names
+        ___ = re.split('|'.join(_partners+self.law_words+['一','二','三','四','五','六','七','八','九','〇','十']), sorted(re.split(u'[审|理|一|二|三|四|五|六|七|八|九|〇|十]{2,}', s_), key=lambda x:-len(x))[0] if u'审理' in s_ else s_)
+        #print(___)
+        if max([len(item) for item in ___ if item is not None]) >= 3 and len(s_) <= 70:
+            try:
+                data = json.dumps({'text':s_}, ensure_ascii=False)
+                response = requests.post(self.ner_url, data=data.encode('utf-8')).text
+                result = json.loads(response)
+                corps, persons = (result['corps'], result['persons']) if 'error_type' not in result else ([], [])
+            except:
+                pass
+            #print("ner", corps, persons)
+        corp_names += [item for item in corps if item in s_]
+        person_names += [item for item in persons if item in s_]
         person_names = list(set(person_names) - set(corp_names))
         corp_names = list(set(corp_names))
         all_names = set(corp_names) | set(person_names)
@@ -125,8 +136,8 @@ class CaseReasonETL:
                     person_names.remove(p_name)
                     break
         d = {}
-        person_names = [item for item in person_names if item not in self.law_words2]
-        corp_names = [item for item in corp_names if item not in self.law_words2]
+        person_names = [item.strip() for item in person_names if item not in self.law_words2 and re.sub(' |\t|\r|\n','',item) and item in s_]
+        corp_names = [item.strip() for item in corp_names if item not in self.law_words2 and re.sub(' |\t|\r|\n','',item) and item in s_]
         for item in person_names:
             d[item] = u'个人'
         for item in corp_names:
@@ -255,6 +266,7 @@ def get_role(reason, entity_type):
     return entity_array
 
 def entity_info(reason):
+    reason = re.sub(u'告】','', reason)
     reason = re.sub(u'[\(|（]+.{1,3}[原|审|二|一|上|诉|申|请|执|行|被|罪|再|赔|利]+审.*?[\)|）]+','', reason)
     _ = re.split(u'[（|\(]+\d{3,5}[\)|）]+.{1,3}\d+[刑民商]+[初再二终]+\d{2,6}号', reason)
     if len(_) == 1:
