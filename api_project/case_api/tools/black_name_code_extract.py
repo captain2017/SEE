@@ -176,23 +176,25 @@ class BlackNameCodeTool:
                         map_['idno'] = code_
                     elif check_organizationcode(code_) or len(code_) in (9,10):
                         map_['org'] = code_
-                    elif re.findall('[a-zA-Z]{10,30}', code_):
+                    elif len(code_) == 18 and re.findall('[0-9A-Za-z]{15,}', code_):
                         map_['credit'] = code_
                     elif len(code_) == 15:
                         map_['regno'] = code_
             if len(map_) == 1 and idno:
                 code_ = re.findall('[0-9a-zA-Z\.\*-]+', idno)
+                tp = _model_corp.entity_type(_name)
                 code_ = code_[0] if code_ else ''
-                if checkIdcard(code_):
+                if checkIdcard(code_) or tp == u'个人':
                     map_['idno'] = code_
                 elif check_organizationcode(code_) or len(code_) in (9,10):
                     map_['org'] = code_
-                elif re.findall('[a-zA-Z]{10,30}', code_):
+                elif len(code_) == 18 and re.findall('[0-9A-Za-z]{15,}', code_): # re.findall('[a-zA-Z]{10,30}', code_):
                     map_['credit'] = code_
                 elif len(code_) == 15:
                     map_['regno'] = code_
+                map_['type'] = tp
             # 获取类型
-            map_['type'] = _model_corp.entity_type(_name)
+            map_['type'] = map_['type'] if 'type' in map_ else _model_corp.entity_type(_name)
             # 获取曾用名
             #print(1, left_)
             if u'曾用名' in left_:

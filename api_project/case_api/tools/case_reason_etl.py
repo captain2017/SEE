@@ -83,6 +83,7 @@ class CaseReasonETL:
         if len(s) < 6:
             return {}
         corps, persons = [], []
+        s = re.sub(u'[（\(]+[原再二审被告执行人上诉]{2,}[\)|）]+','',s)
         s_ = s
         #print('case_reason', s)
         s = sorted(re.split(u'[审|理|一|二|三|四|五|六|七|八|九|〇|十|法|庭|法|院]{2,}', s), key=lambda x:-len(x))[0] if u'审理' in s else s
