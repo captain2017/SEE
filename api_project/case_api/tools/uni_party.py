@@ -4,7 +4,7 @@
 
 from . import court_etl_tool as cet
 from . import case_reason_etl as cre
-import os, codecs
+import os, codecs, re
 
 path = os.popen("pwd").read().strip()+'/tools/'
 
@@ -21,6 +21,8 @@ role_words = [u'被上诉人', u'被申请人', u'被申诉人', u'被执行人'
 
 role_set = set(role_words)
 
+prov_keys = set([u'省',u'市',u'区',u'县',u'乡',u'村',u'镇',u'街',u'路'])
+
 def split_element(lst, split_s):
     ret = []
     for item in lst:
@@ -28,12 +30,13 @@ def split_element(lst, split_s):
     return ret
 
 def parser_party(text, role=""):
+    text = text[2:] if text[:2] in (u'告】',u'人】') else text
+    text = re.sub(u'原文|原被告','',text)
     text_, key_ = text, []
     for item in law_words:
         if item in text_:
             key_.append(item)
             text_ = text_.replace(item, '')
-    
     key_, entity_array = set(key_), []
     #print(key_)
     if key_ - role_set:
@@ -44,9 +47,11 @@ def parser_party(text, role=""):
         entity_array = _court_tool.parser_litigant(text)
 
     if not role:
+        entity_array = [d for d in entity_array if d['name'][-1] not in prov_keys or len(d['name']) < 5]
         return entity_array
     
     for i in range(len(entity_array)):
         if entity_array[i]['role'] == u'其他当事人':
             entity_array[i]['role'] = role
+    entity_array = [d for d in entity_array if d['name'][-1] not in prov_keys or len(d['name']) < 5]
     return entity_array

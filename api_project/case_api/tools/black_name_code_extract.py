@@ -144,7 +144,7 @@ class BlackNameCodeTool:
         name_ = re.sub(u'[（|\(]+.*?[0-9a-zA-Z\*-]{9,20}[\)|）]*', '', name)
         name_ = re.sub(u'曾用名[:,，： ]*.*?[,， \)）]+', '', name_)
         name_ = re.sub(u'[住所地]{2,3}.{4,50}[ |,|。|，]?', '', name_)
-        #name_ = re.sub(u'[（\(]+.*?[\)）]+', '', name_)
+        name_ = re.sub(u'[（\(]+.*?[\)）]+', '', name_)
         for pat in list(self.code_type_pattern.values()):
             name_ = re.sub(pat, '', name_)
         name_list = re.split(u'，|、|：|,|\.|:|;|；', name_)
@@ -172,11 +172,7 @@ class BlackNameCodeTool:
                         continue
                     map_[key] = code_
                 if len(map_) == 1:
-                    try:
-                        is_idcard = checkIdcard(code_)
-                    except:
-                        is_idcard = 0
-                    if is_idcard:
+                    if checkIdcard(code_):
                         map_['idno'] = code_
                     elif check_organizationcode(code_) or len(code_) in (9,10):
                         map_['org'] = code_
@@ -187,11 +183,7 @@ class BlackNameCodeTool:
             if len(map_) == 1 and idno:
                 code_ = re.findall('[0-9a-zA-Z\.\*-]+', idno)
                 code_ = code_[0] if code_ else ''
-                try:
-                    is_idcard = checkIdcard(code_)
-                except:
-                    is_idcard = 0
-                if is_idcard:
+                if checkIdcard(code_):
                     map_['idno'] = code_
                 elif check_organizationcode(code_) or len(code_) in (9,10):
                     map_['org'] = code_
@@ -215,16 +207,11 @@ class BlackNameCodeTool:
                 if _[1][0] == _name[0]:
                     map_['alias'] = re.split(u'[），。,\.\)]+', _[1])[0]
             entity_array.append(map_)
-        for i, d in enumerate(entity_array):
-            if d['type'] == u'个人':
-                d['regno'], d['credit'], d['org'] = '', '', ''
-            entity_array[i] = d
         return entity_array
 
     def get_info(self, name, idno, legal_person):
         d = {}
-        tyqsb = lambda s:re.sub('-+','-',s)
-        d['party'] = self.get_(tyqsb(name), tyqsb(idno))
+        d['party'] = self.get_(name, idno)
         d['legal_person'] = self.get_(legal_person, '') if re.sub(' |\t|\r|\n','',legal_person) not in ('*','不详','无','法定代表人','.','0','厂长','未知','暂无','暂无。','无法查询','查无','无该信息','卷宗内无此记录','情况不详') else [{'name':'', 'idno':''}]
         return d
 
