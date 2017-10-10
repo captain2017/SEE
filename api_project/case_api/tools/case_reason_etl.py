@@ -92,6 +92,8 @@ class CaseReasonETL:
             pieces = split_element(pieces, law_word)
         #pieces = [item if u'第三人' != item[:3] else item[3:] for item in pieces if item]
         pieces = [item.split(u'第三人') if u'第三人' in item and u'第三人民' not in item else [item] for item in pieces if item]
+        if not pieces:
+            return {}
         pieces = reduce(lambda x,y:x+y, pieces)
         pieces = [item for item in pieces if item]
         #print(1, pieces)
