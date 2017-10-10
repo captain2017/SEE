@@ -108,7 +108,7 @@ class CaseReasonETL:
         _partners = corp_names + person_names
         ___ = re.split('|'.join(_partners+self.law_words+['一','二','三','四','五','六','七','八','九','〇','十']), sorted(re.split(u'[审|理|一|二|三|四|五|六|七|八|九|〇|十]{2,}', s_), key=lambda x:-len(x))[0] if u'审理' in s_ else s_)
         #print(___)
-        if max([len(item) for item in ___ if item is not None]) >= 3 and len(s_) <= 70:
+        if max([len(item) for item in ___ if item is not None]) >= 3 and 15 <= len(s_) <= 50:
             try:
                 data = json.dumps({'text':s_}, ensure_ascii=False)
                 response = requests.post(self.ner_url, data=data.encode('utf-8')).text
