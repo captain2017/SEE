@@ -1,34 +1,42 @@
 # -*- coding: utf-8 -*-
-# 案由中的关联方清洗
+# 案由中的关联方清
+
 '''
 特点:
-1.标识有司法词库信息 
+1.标识有司法词库信息
 2.特殊标点符号间隔
 '''
+
 import re, codecs, json
 import pymysql as pm
 from . import chinese_name_extract as cne
 from . import corp_detect as cpdt
 from functools import reduce
 import requests, os
+
 path = os.popen("pwd").read().strip()+'/tools/'
+
 _model_person = cne.ChineseNameTool(path+'family_names.txt', path+'chinese_names.txt')
 _model_corp = cpdt.CorpRecognize(path+'train_char.txt', path+'corp_samples.txt', path+'noncorp_samples.txt')
 end_chars = [u'有限合伙）', '有限合伙)'] + _model_corp.corp_key_words
+
 with codecs.open(path+'plaintiff.txt', 'r', 'utf-8') as f:
     plaintiff_word = [line.strip() for line in f.readlines()]
 with codecs.open(path+'defandant.txt', 'r', 'utf-8') as f:
     defandant_word = [line.strip() for line in f.readlines()]
+
 def split_element(lst, split_s):
     ret = []
     for item in lst:
         ret.extend(item.split(split_s))
     return ret
+
 g = lambda x: json.dumps(x, ensure_ascii=False).encode('utf-8')
+
 class CaseReasonETL:
-    
+
     ner_url = 'http://10.50.87.162/v1/case_ner'
-    
+
     def __init__(self, law_words_file, sep_file):
         with codecs.open(law_words_file, 'r', 'utf-8') as f:
             self.law_words2 = [line.strip() for line in f.readlines()]
@@ -36,8 +44,8 @@ class CaseReasonETL:
             self.law_words2 = set(self.law_words2)
         with codecs.open(sep_file, 'r', 'utf-8') as f:
             self.sep_pattern = re.compile(u'|'.join([line.strip() for line in f.readlines()]+[' ']))
-    
-    
+
+
     def get_person_name(self, s, max_L=4):
         if len(s) <= 1:
             return ''
@@ -57,7 +65,7 @@ class CaseReasonETL:
         else:
             return ''
     '''
-    
+
     def get_corp_name(self, s):
         if len(s) < 4:
             return ''
@@ -69,7 +77,7 @@ class CaseReasonETL:
             return s
         else:
             return ''
-            
+
     def extract_each(self, s):
         if len(s) < 6:
             return {}
@@ -83,6 +91,8 @@ class CaseReasonETL:
             pieces = split_element(pieces, law_word)
         #pieces = [item if u'第三人' != item[:3] else item[3:] for item in pieces if item]
         pieces = [item.split(u'第三人') if u'第三人' in item and u'第三人民' not in item else [item] for item in pieces if item]
+        if not pieces:
+            return {}
         pieces = reduce(lambda x,y:x+y, pieces)
         pieces = [item for item in pieces if item]
         #print(1, pieces)
@@ -97,7 +107,7 @@ class CaseReasonETL:
         _partners = corp_names + person_names
         ___ = re.split('|'.join(_partners+self.law_words+['一','二','三','四','五','六','七','八','九','〇','十']), sorted(re.split(u'[审|理|一|二|三|四|五|六|七|八|九|〇|十]{2,}', s_), key=lambda x:-len(x))[0] if u'审理' in s_ else s_)
         #print(___)
-        if max([len(item) for item in ___ if item is not None]) >= 3 and len(s_) <= 70:
+        if max([len(item) for item in ___ if item is not None]) >= 3 and 15 <= len(s_) <= 50:
             try:
                 data = json.dumps({'text':s_}, ensure_ascii=False)
                 response = requests.post(self.ner_url, data=data.encode('utf-8')).text
@@ -120,7 +130,7 @@ class CaseReasonETL:
                         del_names.append(item)
         corp_names, person_names = [item for item in corp_names if item not in del_names], \
                                    [item for item in person_names if item not in del_names]
-        
+
         for p_name in person_names[:]:
             for c_name in corp_names:
                 if p_name in c_name:
@@ -177,7 +187,8 @@ def get_pl_de(case_reason, entity_type):
             return ','.join(pl_list), ','.join(de_list)'''
         pl_list = list(set(pl_list)-set(de_list))
         return pl_list, de_list
-    pat = re.compile(u'[^上|申|反]+诉')        
+
+    pat = re.compile(u'[^上|申|反]+诉')
     if pat.findall(case_reason):
         aa = re.split(u'诉', case_reason)
         pl, de = aa[0], aa[1]
@@ -188,9 +199,9 @@ def get_pl_de(case_reason, entity_type):
                 de_list.append(item)
     if pl_list or de_list:
         return pl_list, de_list
-        
+
     return [], []
-    
+
 def entity_info(reason):
     entities = m.extract_each(reason)
     pl, de = get_pl_de(reason, entities)
@@ -209,31 +220,34 @@ def entity_info(reason):
     entity_array = json.dumps(entity_array, ensure_ascii=False)
     return entity_array
 """
+
 m = CaseReasonETL(path+'law_words.txt', path+'sep_words.txt')
+
 role_words = defandant_word+plaintiff_word+[u'第三人', u'当事人']
+
 def certain_locations(w, text):
     locations = []
     while w in text:
         locations.append((w, text.find(w)))
         text = text.replace(w, 'X'*len(w))
     return locations
-    
+
 def get_role(reason, entity_type):
     _reason, locations, L = reason, [], len(reason)
     for w_ in role_words:
         while w_ in _reason:
             locations.append((w_, _reason.find(w_)))
             _reason = _reason.replace(w_, 'X' * len(w_), 1)
-            
+
     pos_su, _key, key_ = certain_locations(u'诉', _reason), (u'上',u'申',u'撤', u'非', u'公'), (u'求',u'讼',u'状')
     pos_su = [(w, p) for w, p in pos_su if _reason[max(0, p-1)] not in _key and _reason[min(L-1, p+1)] not in key_]
-    
+
     if not locations:
         if not pos_su:
             return [{'name':key, 'type':val, 'role':u'其他当事人'} for key, val in entity_type.items()]
         p = pos_su[0][1]
         return [{'name':key, 'type':val, 'role':u'原告' if _reason.find(key) < p else u'被告'} for key, val in entity_type.items()]
-    
+
     _reason = reason
     name_role = {}
     locations.sort(key=lambda x:-x[1])
@@ -242,7 +256,7 @@ def get_role(reason, entity_type):
         for key in entity_type:
             if key in _s:
                 name_role[key] = w_
-    
+
     entity_array = [{'name':key, 'type':val, 'role':name_role[key] if key in name_role else u'其他当事人'} for key, val in entity_type.items()]
     if pos_su:
         p = pos_su[0][1]
@@ -251,6 +265,7 @@ def get_role(reason, entity_type):
                 d['role'] = u'原告' if reason.find(d['name']) < p else u'被告'
                 entity_array[i] = d
     return entity_array
+
 def entity_info(reason):
     reason = re.sub(u'告】','', reason)
     reason = re.sub(u'[\(|（]+.{1,3}[原|审|二|一|上|诉|申|请|执|行|被|罪|再|赔|利]+审.*?[\)|）]+','', reason)
@@ -263,9 +278,9 @@ def entity_info(reason):
     entity = {key:val for key, val in entities.items() if u'法院' not in key}
     s = get_role(reason, entity)
     return s
-    
+
 if __name__ == '__main__':
-    
+
     a = u'被告万利建设有限公司和万利建设有限公司合肥分公司与原告合肥闽乐金属有限公司买卖合同纠纷'
     #url = 'http://10.50.87.150:8000/reason_entity/?reason={}'.format(a.encode('utf-8'))
     print(entity_info(a))
@@ -281,7 +296,7 @@ if __name__ == '__main__':
         res = cursor.fetchall()
         if not res:
             break
-        
+
         for ind, reason in res:
             if not reason or len(reason) < 10:
                 continue
@@ -291,5 +306,5 @@ if __name__ == '__main__':
             cursor.execute(sql_update)
             conn.commit()
         print(i+1)
-        
+
     conn.close()'''
