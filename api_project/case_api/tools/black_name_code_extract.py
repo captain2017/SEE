@@ -184,7 +184,7 @@ class BlackNameCodeTool:
                 code_ = re.findall('[0-9a-zA-Z\.\*-]+', idno)
                 tp = _model_corp.entity_type(_name)
                 code_ = code_[0] if code_ else ''
-                if checkIdcard(code_) or tp == u'个人':
+                if tp == u'个人' and checkIdcard(code_):
                     map_['idno'] = code_
                 elif check_organizationcode(code_) or len(code_) in (9,10):
                     map_['org'] = code_
