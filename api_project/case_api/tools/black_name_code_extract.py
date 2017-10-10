@@ -172,7 +172,9 @@ class BlackNameCodeTool:
                         continue
                     map_[key] = code_
                 if len(map_) == 1:
-                    if checkIdcard(code_):
+                    try:    is_idno = checkIdcard(code_)
+                    except:    is_idno = 0
+                    if is_idno:
                         map_['idno'] = code_
                     elif check_organizationcode(code_) or len(code_) in (9,10):
                         map_['org'] = code_
@@ -184,7 +186,9 @@ class BlackNameCodeTool:
                 code_ = re.findall('[0-9a-zA-Z\.\*-]+', idno)
                 tp = _model_corp.entity_type(_name)
                 code_ = code_[0] if code_ else ''
-                if tp == u'个人' and checkIdcard(code_):
+                try:    is_idno = checkIdcard(code_)
+                except:    is_idno = 0
+                if (tp == u'个人' and len(code_) in (15, 18)) or is_idno:
                     map_['idno'] = code_
                 elif check_organizationcode(code_) or len(code_) in (9,10):
                     map_['org'] = code_
@@ -282,6 +286,7 @@ def get_C9(bref):
 
 def check_organizationcode(code):
     # 输入组织机构代码进行判断，如果正确，则输出'验证通过，组织机构代码证格式正确！'，错误则返回错误原因
+    code = re.sub('-+','-', code)
     ERROR = '组织机构代码证错误!'
     if '-' in code:
         bref, C9_check = code.split('-')

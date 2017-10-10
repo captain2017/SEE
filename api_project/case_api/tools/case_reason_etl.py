@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# 案由中的关联方清
+
+# 案由中的关联方清洗
 
 '''
 特点:
@@ -81,6 +82,7 @@ class CaseReasonETL:
     def extract_each(self, s):
         if len(s) < 6:
             return {}
+        s = s.replace('(',u'（').replace(')',u'）').replace('?','')
         corps, persons = [], []
         s = re.sub(u'[（\(]+[原再二审被告执行人上诉]{2,}[\)|）]+','',s)
         s_ = s
