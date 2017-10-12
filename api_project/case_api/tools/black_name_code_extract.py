@@ -144,7 +144,7 @@ class BlackNameCodeTool:
         name_ = re.sub(u'[（|\(]+.*?[0-9a-zA-Z\*-]{9,20}[\)|）]*', '', name)
         name_ = re.sub(u'曾用名[:,，： ]*.*?[,， \)）]+', '', name_)
         name_ = re.sub(u'[住所地]{2,3}.{4,50}[ |,|。|，]?', '', name_)
-        name_ = re.sub(u'[（\(]+.*?[\)）]+', '', name_)
+        #name_ = re.sub(u'[（\(]+.*?[\)）]+', '', name_)
         for pat in list(self.code_type_pattern.values()):
             name_ = re.sub(pat, '', name_)
         name_list = re.split(u'，|、|：|,|\.|:|;|；', name_)
