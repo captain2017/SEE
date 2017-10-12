@@ -221,6 +221,8 @@ class BlackNameCodeTool:
         d['party'] = [item for item in d['party'] if len(re.sub('[0-9A-Za-z\.,\(\)（）]+','',item['name'])) >= 2]
         d['legal_person'] = self.get_(legal_person, '') if re.sub(' |\t|\r|\n','',legal_person) not in ('*','不详','无','法定代表人','.','0','厂长','未知','暂无','暂无。','无法查询','查无','无该信息','卷宗内无此记录','情况不详') else [{'name':'', 'idno':''}]
         d['original'] = {'name':name,'idno':idno,'legal_person':legal_person}
+        if not d['party']:
+            d['party'] = [d['original']]
         return d
 
 def checkIdcard(idcard):
