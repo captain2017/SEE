@@ -12,6 +12,7 @@ import re, codecs, json
 import pymysql as pm
 from . import chinese_name_extract as cne
 from . import corp_detect as cpdt
+from . import case_ner2 as cn2
 from functools import reduce
 import requests, os
 
@@ -19,6 +20,7 @@ path = os.popen("pwd").read().strip()+'/tools/'
 
 _model_person = cne.ChineseNameTool(path+'family_names.txt', path+'chinese_names.txt')
 _model_corp = cpdt.CorpRecognize(path+'train_char.txt', path+'corp_samples.txt', path+'noncorp_samples.txt')
+_model_ner = cn2.entity_extract
 end_chars = [u'有限合伙）', '有限合伙)'] + _model_corp.corp_key_words
 
 with codecs.open(path+'plaintiff.txt', 'r', 'utf-8') as f:
@@ -43,6 +45,8 @@ class CaseReasonETL:
             self.law_words2 = [line.strip() for line in f.readlines()]
             self.law_words = self.law_words2[:self.law_words2.index('----')]
             self.law_words2 = set(self.law_words2)
+            self.law_words.sort(key=lambda x:-len(x))
+            #self.law_words2.sort(key=lambda x:-len(x))
         with codecs.open(sep_file, 'r', 'utf-8') as f:
             self.sep_pattern = re.compile(u'|'.join([line.strip() for line in f.readlines()]+[' ']))
 
@@ -111,11 +115,15 @@ class CaseReasonETL:
         #print(___)
         if max([len(item) for item in ___ if item is not None]) >= 3 and 15 <= len(s_) <= 50:
             try:
+                """
                 data = json.dumps({'text':s_}, ensure_ascii=False)
                 response = requests.post(self.ner_url, data=data.encode('utf-8')).text
                 result = json.loads(response)
                 corps, persons = (result['corps'], result['persons']) if 'error_type' not in result else ([], [])
+                """
+                corps, persons = _model_ner(s_)
             except:
+                print("Error NER")
                 pass
             #print("ner", corps, persons)
         corp_names += [item for item in corps if item in s_]

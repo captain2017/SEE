@@ -7,7 +7,6 @@ from . import entity_extract as ee
 from . import corp_detect as cpdt
 from . import defendant_etl as defd
 from . import api_charge_result as acr
-from . import api_charge_case_end_date as acced
 
 eng = '[（|\(]+[^\)）]*?([a-zA-Z’ ,.，&]+).*?[\)|）]*'  #用于EnglishName函数
 
@@ -93,7 +92,6 @@ class PersonETL:
             self.del_word = [line.strip().replace('\ufeff','') for line in fd.readlines()]
 
         self.cause_type_all = CauseTypeSearch(self.cause_type_list)
-    
 
     def ChargeSentence(self,charge,min_substr_len):  
         '''
@@ -325,8 +323,7 @@ class PersonETL:
         entity_type = entity_type + eng_entity_type #英文
         result_json = [{'name':a, 'type':b, 'role':c} for a, b, c in zip(pd_end, entity_type,role_end) if a] if ''.join(pd_end+role_end) else []
         charge_result = acr.ChargeResult(charge)
-        close_date = acced.CloseDate(charge)
-        return  result_json, charge_result,close_date       #plaintiff, defandant, json.dumps(result_json,ensure_ascii=False)
+        return  result_json, charge_result       #plaintiff, defandant, json.dumps(result_json,ensure_ascii=False)
     """
     def PersonDB(self,t_file1):
         '''连接数据库获取数据'''
