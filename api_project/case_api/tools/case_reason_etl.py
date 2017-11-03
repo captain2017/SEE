@@ -84,7 +84,7 @@ class CaseReasonETL:
             return ''
             
     def extract_each(self, s):
-        if len(s) < 6:
+        if len(s) < 6 or len(s) > 150:
             return {}
         s = s.replace('(',u'（').replace(')',u'）').replace('?','')
         corps, persons = [], []
@@ -111,6 +111,7 @@ class CaseReasonETL:
         corp_names, person_names = [item for item in corp_names if item], \
                                    [item for item in person_names if item]
         _partners = corp_names + person_names
+        _partners = [re.sub('\[|\]\?|\*|\.','',name) for name in _partners]
         ___ = re.split('|'.join(_partners+self.law_words+['一','二','三','四','五','六','七','八','九','〇','十']), sorted(re.split(u'[审|理|一|二|三|四|五|六|七|八|九|〇|十]{2,}', s_), key=lambda x:-len(x))[0] if u'审理' in s_ else s_)
         #print(___)
         if max([len(item) for item in ___ if item is not None]) >= 3 and 15 <= len(s_) <= 50:
