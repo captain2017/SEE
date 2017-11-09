@@ -11,7 +11,7 @@ post_fix = ['Corporation', 'Corp.', 'Incorporated', 'Inc.', 'Company', 'Co.', \
             'Limited', 'Ltd.', 'ltd', 'PLC', 'LLP', 'LLC', 'Pte', 'PVT', 'PTY', 'EST', 'FZC', 'FZCO', \
             'FZE', 'JSC', 'OJSC', 'SDN', 'BHD', 'PT', 'TBK', 'GmbH', 'AG', 'A.G', 'S.A.R.L', 'S.A', \
             'B.V', 'N.V', 'A/S', 'S.P.A', 'S.R.L', 'AB', 'OY', 'S.R.O', 'S.A', 'de C.V', 'OOO', 'OAO', 'ZAO', 'AO', \
-            'K.K', 'Y.K', 'APS', 'Lda', 'Ltda', 'SP.Z.O.O', 'TIC', 'EIRL', 'D.O.O', 'A.D', 'SRL', 'SA']
+            'K.K', 'Y.K', 'APS', 'Lda', 'Ltda', 'SP.Z.O.O', 'TIC', 'EIRL', 'D.O.O', 'A.D', 'SRL', 'SA', 'LIMITED', 'GROUP']
             
 def isEngCorp(name, ratio=.4):
     name_ = name[-int(len(name)*ratio) :]

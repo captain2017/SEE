@@ -39,12 +39,14 @@ def parser_party(text, role=""):
             text_ = text_.replace(item, '')
     key_, entity_array = set(key_), []
     #print(key_)
-    if key_ - role_set:
+    print(text_)
+    dif = key_ - role_set
+    if dif and '等' not in dif:
         #print(1)
         entity_array = _reason_tool(text)
     else:
         #print(2)
-        entity_array = _court_tool.parser_litigant(text)
+        entity_array = _court_tool.parser_litigant(text_)
 
     if not role:
         entity_array = [d for d in entity_array if d['name'][-1] not in prov_keys or len(d['name']) < 5]

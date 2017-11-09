@@ -103,7 +103,7 @@ class CaseReasonETL:
         pieces = [item for item in pieces if item]
         #print(1, pieces)
         corp_names = [self.get_corp_name(item) for item in pieces]
-        person_names = [self.get_person_name(item) for item in pieces]
+        person_names = [self.get_person_name(item.strip('(（)）')) for item in pieces]
         #print(2, person_names)
         corp_names = [_[1:] if _[0] in (u')', u'）') else _ for _ in corp_names if _]
         person_names = [_[1:] if _[0] in (u')', u'）') else _ for _ in person_names if _]
@@ -149,6 +149,7 @@ class CaseReasonETL:
                     break
         d = {}
         person_names = [item.strip() for item in person_names if item not in self.law_words2 and re.sub(' |\t|\r|\n','',item) and item in s_]
+        person_names = [item if len(item) > 5 else item.strip('(（)）') for item in person_names]
         corp_names = [item.strip() for item in corp_names if item not in self.law_words2 and re.sub(' |\t|\r|\n','',item) and item in s_]
         for item in person_names:
             d[item] = u'个人'
