@@ -47,7 +47,7 @@ def parser_party(text, role=""):
     else:
         #print(2)
         entity_array = _court_tool.parser_litigant(text_)
-
+    entity_array = [d for d in entity_array if d['name']]
     if not role:
         entity_array = [d for d in entity_array if d['name'][-1] not in prov_keys or len(d['name']) < 5]
         return entity_array
