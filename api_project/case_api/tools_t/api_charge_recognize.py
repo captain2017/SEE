@@ -178,6 +178,16 @@ class PersonETL:
             if item in re.sub('\d+','',person_end):
                 return ''
         return person_end
+   
+    def DelNum(self,person):
+        '''去掉当事人中的数字'''
+        num_list = re.findall('\d+',person)
+        if num_list:
+            num_len = len(num_list[-1])
+            num_ind = person.find(num_list[-1])
+            ind = num_len + num_ind
+            return person[ind:] if person[ind] != ')' and person[ind] != '）' else person[ind +1:]
+        return person
 
     def PersonEnding(self,person_end):
         """
@@ -185,14 +195,18 @@ class PersonETL:
         """
         if len(person_end) < 2:
             return ''
-        person_end = person_end.replace(' ','').strip()
-        person_end = re.split('[\(|\（]\d+[\)|\）].*?号',person_end)[-1] #去带有案号的
+        person_end = person_end.replace(' ','').replace('（）','').replace('【】','').replace('　','').strip()
+        person_end = re.split('[\(|\（|\[|〔]\d+[\)|\）|\]|〕].*?号',person_end)[-1] #去带有案号的
         person_end = self.DelWords(person_end)   #去除带有冗余数据的原被告
+        if not person_end:
+            return ''
+        person_end = self.DelNum(person_end)
+        if person_end.find('（') == 0 or person_end.find('(') == 0:
+            return ''
         person_end = re.sub('|'.join(self.role_list),'',person_end) #去除清洗后仍存在的原被告角色
         person_end = person_end[:-2] if person_end and person_end[-2:] == '关于' else person_end
         person_end = person_end[:-1] if person_end and (person_end[-1] == '犯' or person_end[-1] == '为')  else person_end  #去掉郑某某犯的情况
-        person_end = person_end[1:] if person_end and person_end[0] == '就' else person_end
-        
+        person_end = person_end[1:] if person_end and person_end[0] in ['-','.','_','`','－','；','.','∶','①','】','㈠','㈡','㈢','㈣','㈦','㈧','就'] else person_end
         for line in self.other_word:
             other_ind = person_end.find(line)
             if other_ind != -1:
