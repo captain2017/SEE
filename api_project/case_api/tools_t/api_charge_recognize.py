@@ -186,6 +186,8 @@ class PersonETL:
             num_len = len(num_list[-1])
             num_ind = person.find(num_list[-1])
             ind = num_len + num_ind
+            if ind == len(person):
+                return person
             return person[ind:] if person[ind] != ')' and person[ind] != '）' else person[ind +1:]
         return person
 
