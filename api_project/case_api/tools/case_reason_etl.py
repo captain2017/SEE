@@ -150,7 +150,7 @@ class CaseReasonETL:
             d[item] = u'个人'
         for item in corp_names:
             d[item] = u'企业'
-        return d if d else self.extract_each(_s.split('审理')[-1])
+        return d if d else (self.extract_each(_s.split('审理')[-1]) if '审理' in d else d)
 """
 def get_pl_de(case_reason, entity_type):
     p = entity_type
