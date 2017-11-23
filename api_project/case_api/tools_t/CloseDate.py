@@ -41,7 +41,7 @@ def nstr_to_date(us):
                 return '0' + dic[us] if us != '十' else '10'
             elif len(us) == 2:
                 return '1' + dic[us[1]] if us[0] == '十' else dic[us[0]] + '0'
-            elif len(us) == 3:
+            elif len(us) == 3 and us[1] == '十':
                 return dic[us[0]] + dic[us[2]]
         return '00'
     except:
@@ -57,4 +57,4 @@ def QFormat(close_date):
     return ''
 
 a = QFormat('1980年3月20日')
-#print(a)
+#print(nstr_to_date('一二三'))
