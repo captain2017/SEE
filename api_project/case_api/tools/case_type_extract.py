@@ -26,6 +26,7 @@ with codecs.open(case_type_file, 'r', 'utf-8') as f:
     case_type_first = {line[1]:line[0] for line in case_types}
     case_type_second = {line[2]:line[1] for line in case_types if line[2] != 'N'}
     case_types = sorted(list(set(reduce(lambda x,y:x+y, case_types))), key=lambda x:-len(x))
+    case_types.remove('N')
 
 def combine(tuple_list):
     d = {}
@@ -43,7 +44,7 @@ class StrSearchTool(object):
         self.target_strings = re.compile('|'.join(target_strings))
         
     def extract_target_strings(self, text):
-        strings = self.target_strings.findall(text)
+        strings = list(set(self.target_strings.findall(text)))
         d = []
         for s in strings:
             if s in case_type_second:
