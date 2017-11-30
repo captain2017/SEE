@@ -217,12 +217,18 @@ class BlackNameCodeTool:
 
     def get_info(self, name, idno, legal_person):
         d = {}
+        n_ = idno.count('*')
+        if n_ > 0 and len(idno) - n_ <= 18:
+            idno_list = list(idno)
+            for i in range(len(idno)-18):
+                idno_list.remove('*')
+            idno = ''.join(idno_list)
         d['party'] = self.get_(name, idno)
-        d['party'] = [item for item in d['party'] if len(re.sub('[0-9A-Za-z\.,\(\)（）]+','',item['name'])) >= 2]
+        d['party'] = [item for item in d['party'] if len(re.sub('[0-9A-Za-z\.,\(\)（）]+','',item['name'])) > 1]
         d['legal_person'] = self.get_(legal_person, '') if re.sub(' |\t|\r|\n','',legal_person) not in ('*','不详','无','法定代表人','.','0','厂长','未知','暂无','暂无。','无法查询','查无','无该信息','卷宗内无此记录','情况不详') else [{'name':'', 'idno':''}]
         d['original'] = {'name':name,'idno':idno,'legal_person':legal_person}
         if not d['party']:
-            d['party'] = [d['original']]
+            pass#d['party'] = [d['original']]
         return d
 
 def checkIdcard(idcard):

@@ -10,14 +10,15 @@ import re
 dateetl = df.DateFormat()  #审结日期清洗工具
 
 def GetChargeDate(charge):
-    '''文书中获取结案日期'''
+    '''文书中获取结案日期'''  
     if not charge:
         return ''
-    close_date = re.findall(r'[二|一][〇|?|０|○|九]{1,1}.{2,2}年.*?月.*?日',charge)
+    close_date = re.findall(r'[二|一][〇|?|０|○|九]{1,1}.{2,2}年.*?月[一二三四五六七八九十]{1,3}日*',charge)
+    #close_date = re.findall(r'[二|一][〇|?|０|○|九]{1,1}.{2,2}年.*?月.*?日',charge)
     if len(close_date) > 1:
-        close_date = re.findall(r'([二|一][〇|?|０|○|九]{1,1}.{2,2}年.{1,5}月.{1,5}日).{0,6}书记员',charge)
+        close_date = re.findall(r'([二|一][〇|?|０|○|九]{1,1}.{2,2}年.{1,5}月[一二三四五六七八九十]{1,3}日*).{0,6}书记员',charge)
     if len(close_date) == 1: #会出现多个日期，目前只取单个日期的值
-        return close_date[0]
+        return close_date[0] if close_date[0][-1] == '日' else close_date[0]+'日'
     return ''
 
 
@@ -35,4 +36,4 @@ def CloseDate(charge):
 
 
 charge = '裁定如下，审结日期二〇一七年七月八日'
-print(CloseDate(charge))
+#print(CloseDate(charge))

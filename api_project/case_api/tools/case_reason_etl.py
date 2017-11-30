@@ -38,7 +38,7 @@ g = lambda x: json.dumps(x, ensure_ascii=False).encode('utf-8')
 
 class CaseReasonETL:
 
-    ner_url = 'http://10.50.87.162/v1/case_ner'
+    ner_url = 'http://10.50.87.150:8090/v1/case_ner'
 
     def __init__(self, law_words_file, sep_file):
         with codecs.open(law_words_file, 'r', 'utf-8') as f:
@@ -84,14 +84,15 @@ class CaseReasonETL:
             return ''
 
     def extract_each(self, s):
-        if len(s) < 6:
+        _s = s
+        if len(s) < 6 or len(s) > 150:
             return {}
         s = s.replace('(',u'（').replace(')',u'）').replace('?','')
         corps, persons = [], []
         s = re.sub(u'[（\(]+[原再二审被告执行人上诉]{2,}[\)|）]+','',s)
         s_ = s
         #print('case_reason', s)
-        s = sorted(re.split(u'[审|理|一|二|三|四|五|六|七|八|九|〇|十|法|庭|法|院\d-]{2,}', s), key=lambda x:-len(x))[0] if u'审理' in s else s
+        s = sorted(re.split(u'[审|理|一|二|三|四|五|六|七|八|九|〇|十|法|庭|法|院|年|月|日|\d-]{2,}', s), key=lambda x:-len(x))[0] if u'审理' in s else s
         pieces = re.split(self.sep_pattern, s)
         for law_word in self.law_words:
             pieces = split_element(pieces, law_word)
@@ -103,7 +104,7 @@ class CaseReasonETL:
         pieces = [item for item in pieces if item]
         #print(1, pieces)
         corp_names = [self.get_corp_name(item) for item in pieces]
-        person_names = [self.get_person_name(item) for item in pieces]
+        person_names = [self.get_person_name(item.strip('(（)）')) for item in pieces]
         #print(2, person_names)
         corp_names = [_[1:] if _[0] in (u')', u'）') else _ for _ in corp_names if _]
         person_names = [_[1:] if _[0] in (u')', u'）') else _ for _ in person_names if _]
@@ -111,16 +112,11 @@ class CaseReasonETL:
         corp_names, person_names = [item for item in corp_names if item], \
                                    [item for item in person_names if item]
         _partners = corp_names + person_names
+        _partners = [re.sub('\[|\]\?|\*|\.','',name) for name in _partners]
         ___ = re.split('|'.join(_partners+self.law_words+['一','二','三','四','五','六','七','八','九','〇','十']), sorted(re.split(u'[审|理|一|二|三|四|五|六|七|八|九|〇|十]{2,}', s_), key=lambda x:-len(x))[0] if u'审理' in s_ else s_)
         #print(___)
         if max([len(item) for item in ___ if item is not None]) >= 3 and 15 <= len(s_) <= 50:
             try:
-                """
-                data = json.dumps({'text':s_}, ensure_ascii=False)
-                response = requests.post(self.ner_url, data=data.encode('utf-8')).text
-                result = json.loads(response)
-                corps, persons = (result['corps'], result['persons']) if 'error_type' not in result else ([], [])
-                """
                 corps, persons = _model_ner(s_)
             except:
                 print("Error NER")
@@ -148,12 +144,13 @@ class CaseReasonETL:
                     break
         d = {}
         person_names = [item.strip() for item in person_names if item not in self.law_words2 and re.sub(' |\t|\r|\n','',item) and item in s_]
+        person_names = [item if len(item) > 5 else item.strip('(（)）') for item in person_names]
         corp_names = [item.strip() for item in corp_names if item not in self.law_words2 and re.sub(' |\t|\r|\n','',item) and item in s_]
         for item in person_names:
             d[item] = u'个人'
         for item in corp_names:
             d[item] = u'企业'
-        return d
+        return d if d else (self.extract_each(_s.split('审理')[-1]) if '审理' in d else d)
 """
 def get_pl_de(case_reason, entity_type):
     p = entity_type
