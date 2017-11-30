@@ -181,7 +181,7 @@ def ChargeRec():
     else:
         return Response('{"error_type":"Neither title nor content found."}', mimetype='application/json')
     s = recognize_tool.PersonResult(title,content)
-    return Response(json.dumps({'party':s[0],'result':s[1]}, ensure_ascii=False), mimetype='application/json')
+    return Response(json.dumps({'party':s[0],'result':s[1],'case_end_date':s[2]}, ensure_ascii=False), mimetype='application/json')
 
 @app.route('/v1/discredit_comment', methods=['POST'])
 def DiscreditComment():
