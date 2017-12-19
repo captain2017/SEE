@@ -46,7 +46,7 @@ def replace_casetype(text):
     return re.sub('案+', '案', text)
 
 def get_samples(loops=4):
-    db_info = ('10.50.87.180', 'super_user', 'jkPsuDm2JS3', 'nono_test')
+    db_info = ('172.16.23.67', 'corpcourt', 'vrpR20E8AjzfPncUpJsZ', 'corp_court')
     samples = []
     a, b, c, d = db_info
     conn = pm.connect(host=a, user=b, passwd=c, db=d, charset='utf8')
@@ -203,7 +203,7 @@ class CaseNER(ProbSentenceDetermine):
         self.corp_ends2 = set([item[-1] for item in self.corp_ends])
         
     def write_db(self):
-        db_info = ('10.50.87.180', 'super_user', 'jkPsuDm2JS3', 'nono_test')
+        db_info = ('172.16.23.67', 'corpcourt', 'vrpR20E8AjzfPncUpJsZ', 'corp_court')
         a, b, c, d = db_info
         conn = pm.connect(host=a, user=b, passwd=c, db=d, charset='utf8')
         cursor = conn.cursor()
@@ -222,7 +222,7 @@ class CaseNER(ProbSentenceDetermine):
         conn.close()
         
     def read_db(self):
-        db_info = ('10.50.87.180', 'super_user', 'jkPsuDm2JS3', 'nono_test')
+        db_info = ('172.16.23.67', 'corpcourt', 'vrpR20E8AjzfPncUpJsZ', 'corp_court')
         a, b, c, d = db_info
         conn = pm.connect(host=a, user=b, passwd=c, db=d, charset='utf8')
         cursor = conn.cursor()
@@ -417,7 +417,7 @@ if __name__ == '__main__':
     print(ss) 
     print(entity_extract(ss))
     quit()"""
-    db_info = ('10.50.87.180', 'super_user', 'jkPsuDm2JS3', 'nono_test')
+    db_info = ('172.16.23.67', 'corpcourt', 'vrpR20E8AjzfPncUpJsZ', 'corp_court')
     samples = []
     a, b, c, d = db_info
     conn = pm.connect(host=a, user=b, passwd=c, db=d, charset='utf8')
